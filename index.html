@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+DOCTYPE html>
 <html lang="en">
 <head>
 <meta charset="UTF-8">
@@ -30,9 +30,24 @@
     font-family: 'Cormorant Garamond', serif;
     overflow-x: hidden;
   }
+  body::before {
+    content:'';
+    position: fixed;
+    inset: 0;
+    pointer-events: none;
+    z-index: 1;
+    opacity: 0;
+    background:
+      radial-gradient(circle 180px at var(--glow-x, 50%) var(--glow-y, 50%), rgba(240,192,96,0.14), transparent 58%),
+      radial-gradient(circle 320px at var(--glow-x, 50%) var(--glow-y, 50%), rgba(155,89,245,0.28), transparent 68%),
+      radial-gradient(circle 560px at var(--glow-x, 50%) var(--glow-y, 50%), rgba(74,168,255,0.14), transparent 76%);
+    transition: opacity 0.25s ease;
+  }
+  body.glow-active::before { opacity: 1; }
 
   /* STARS CANVAS */
   #stars { position:fixed; inset:0; z-index:0; pointer-events:none; }
+  #crystals { position:fixed; inset:0; z-index:1; pointer-events:none; }
 
   /* NEBULA BG BLOBS */
   .nebula-bg {
@@ -91,6 +106,7 @@
     font-size: clamp(3.5rem, 8vw, 7rem); font-weight: 300; line-height: 1.05;
     margin-bottom: 2rem; opacity:0; animation: fadeUp 1s 0.4s forwards;
     color: var(--cream);
+    text-shadow: 0 0 30px rgba(195,166,255,0.08);
   }
   .hero-title em { font-style: italic; color: var(--violet); }
   .hero-title .gold { color: var(--gold); }
@@ -100,12 +116,24 @@
     opacity:0; animation: fadeUp 1s 0.6s forwards;
   }
   .hero-cta { display: inline-flex; gap:1.5rem; flex-wrap:wrap; justify-content:center; opacity:0; animation: fadeUp 1s 0.8s forwards; }
+  .hero-inner > * { will-change: transform, opacity; }
 
   .btn {
     padding: 0.9rem 2.5rem; font-family:'Space Mono',monospace; font-size:0.68rem;
     letter-spacing:0.1em; text-transform:uppercase; cursor:none; border: none;
     transition: all 0.3s; text-decoration:none; display:inline-block; position:relative; overflow:hidden;
   }
+  .btn::before {
+    content:'';
+    position:absolute;
+    inset:-120% 30% auto;
+    height:240%;
+    background: linear-gradient(90deg, transparent, rgba(255,255,255,0.18), transparent);
+    transform: rotate(18deg) translateX(-220%);
+    transition: transform 0.8s ease;
+    pointer-events:none;
+  }
+  .btn:hover::before { transform: rotate(18deg) translateX(220%); }
   .btn-primary {
     background: linear-gradient(135deg, var(--purple), var(--violet));
     color: var(--cream);
@@ -127,6 +155,7 @@
     position:absolute; top:50%; left:50%; transform:translate(-50%,-50%);
     font-family:'Cormorant Garamond',serif; font-size:24rem; font-weight:300;
     color:rgba(155,89,245,0.03); line-height:1; user-select:none; pointer-events:none;
+    animation: pulsePhi 10s ease-in-out infinite;
   }
 
   /* MARQUEE */
@@ -135,6 +164,7 @@
     border-bottom:1px solid rgba(155,89,245,0.12); padding: 1.2rem 0;
     background: rgba(13,8,38,0.8);
   }
+  .marquee-wrap:hover .marquee-track { animation-play-state: paused; }
   .marquee-track { display:flex; gap:3rem; animation: marquee 22s linear infinite; width: max-content; }
   .marquee-item { font-family:'Cormorant Garamond',serif; font-size:1.1rem; font-style:italic; color:var(--mist); white-space:nowrap; }
   .marquee-dot { color:var(--violet); }
@@ -146,6 +176,8 @@
   .card {
     background: rgba(13,8,38,0.9); padding: 3rem 2.5rem; cursor:none; transition: background 0.3s;
     position:relative; overflow:hidden;
+    transform: translateY(0) scale(1);
+    transition: transform 0.45s cubic-bezier(0.22,1,0.36,1), background 0.3s, box-shadow 0.45s;
   }
   .card::before {
     content:''; position:absolute; inset:0;
@@ -153,6 +185,10 @@
     transform:translateY(100%); transition: transform 0.45s cubic-bezier(0.76,0,0.24,1); z-index:0;
   }
   .card:hover::before { transform:translateY(0); }
+  .card:hover {
+    transform: translateY(-10px) scale(1.01);
+    box-shadow: 0 24px 50px rgba(4,2,13,0.45);
+  }
   .card-content { position:relative; z-index:1; }
   .card:hover .card-num,
   .card:hover .card-title,
@@ -165,6 +201,36 @@
 
   /* LANDING FOOTER */
   .landing-footer { padding: 2rem 3rem; border-top: 1px solid rgba(155,89,245,0.1); display:flex; justify-content:space-between; align-items:center; font-family:'Space Mono',monospace; font-size:0.52rem; letter-spacing:0.1em; color:var(--mist); }
+
+  .page {
+    opacity: 0;
+    transform: translateY(18px);
+    transition: opacity 0.55s ease, transform 0.55s ease;
+  }
+  .page.active {
+    display:block;
+    opacity: 1;
+    transform: translateY(0);
+  }
+
+  .reveal {
+    opacity: 0;
+    transform: translateY(36px);
+    transition: opacity 0.9s ease, transform 0.9s cubic-bezier(0.22,1,0.36,1);
+    will-change: transform, opacity;
+  }
+  .reveal.in-view {
+    opacity: 1;
+    transform: translateY(0);
+  }
+  .reveal-left { transform: translateX(-42px); }
+  .reveal-right { transform: translateX(42px); }
+  .reveal-left.in-view,
+  .reveal-right.in-view { transform: translateX(0); }
+  .stagger-1 { transition-delay: 0.08s; }
+  .stagger-2 { transition-delay: 0.16s; }
+  .stagger-3 { transition-delay: 0.24s; }
+  .stagger-4 { transition-delay: 0.32s; }
 
   /* PAGE NAV */
   .page-nav {
@@ -293,67 +359,14 @@
   @keyframes drift2 { from { transform:translate(0,0) rotate(0deg); } to { transform:translate(-40px,50px) rotate(-8deg); } }
   @keyframes drift3 { from { transform:translate(-20px,0) rotate(0deg); } to { transform:translate(30px,-30px) rotate(5deg); } }
   @keyframes twinkle { 0%,100% { opacity:0.2; } 50% { opacity:1; } }
-
-  @media (max-width:768px) {
-    .landing-nav { padding:1rem 1.5rem; }
-    .nav-links { gap:1.5rem; }
-    .hero { padding:7rem 1.5rem 3rem; }
-    .cards-section, .team-grid, .assignments-section, .about-content, .page-hero { padding-left:1.5rem; padding-right:1.5rem; }
-    .team-grid { grid-template-columns: repeat(auto-fill, minmax(260px,1fr)); }
+  @keyframes pulsePhi {
+    0%, 100% { transform:translate(-50%,-50%) scale(1); opacity:1; }
+    50% { transform:translate(-50%,-50%) scale(1.06); opacity:0.7; }
   }
-</style>
-</head>
-<body>
 
-<div id="cursor"></div>
-<div class="nebula-bg">
-  <div class="blob blob1"></div>
-  <div class="blob blob2"></div>
-  <div class="blob blob3"></div>
-  <div class="blob blob4"></div>
-</div>
-<canvas id="stars"></canvas>
-
-<div id="lightbox" class="lightbox">
-  <button class="lightbox-close" onclick="closeLightbox()">×</button>
-  <img id="lightboxImg" src="" alt="">
-</div>
-
-<!-- LANDING -->
-<div id="landing" class="page active">
-  <nav class="landing-nav">
-    <div class="nav-logo">Po<span>E</span> · 2024</div>
-    <div class="nav-links">
-      <a href="#" onclick="showPage('about');return false;">Philosophy</a>
-      <a href="#" onclick="showPage('team');return false;">Team</a>
-      <a href="#" onclick="showPage('assignments');return false;">Work</a>
-    </div>
-  </nav>
-
-  <div class="hero">
-    <div class="hero-phi">φ</div>
-    <div class="hero-inner">
-      <div class="hero-sup">Philosophy of Engineering — Portfolio</div>
-      <h1 class="hero-title">Where <em>thought</em><br>meets <span class="gold">creation</span></h1>
-      <p class="hero-sub">Exploring the principles, ethics, and meaning behind the act of building.</p>
-      <div class="hero-cta">
-        <a href="#" onclick="showPage('about');return false;" class="btn btn-primary">Our Philosophy</a>
-        <a href="#" onclick="showPage('team');return false;" class="btn btn-secondary">Meet the Team</a>
-      </div>
-    </div>
-  </div>
-  <div class="hero-deco">
-    <div class="scroll-line"></div>
-    <div class="scroll-text">Scroll</div>
-  </div>
-
-  <div class="marquee-wrap">
-    <div class="marquee-track">
-      <span class="marquee-item">Ethics in Design</span><span class="marquee-dot"> · </span>
-      <span class="marquee-item">Technology & Society</span><span class="marquee-dot"> · </span>
-      <span class="marquee-item">The Engineer's Responsibility</span><span class="marquee-dot"> · </span>
-      <span class="marquee-item">Meaning Through Making</span><span class="marquee-dot"> · </span>
-      <span class="marquee-item">Systems Thinking</span><span class="marquee-dot"> · </span>
-      <span class="marquee-item">Human-Centered Practice</span><span class="marquee-dot"> · </span>
-      <span class="marquee-item">Ethics in Design</span><span class="marquee-dot"> · </span>
-      <span class="marquee-i
+  @media (prefers-reduced-motion: reduce) {
+    html { scroll-behavior: auto; }
+    *, *::before, *::after {
+      animation-duration: 0.01ms !important;
+      animation-iteration-count: 1 !important;
+      tr
